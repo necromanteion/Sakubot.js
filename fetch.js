@@ -5,22 +5,19 @@ module.exports = function(self) {
 		"actionName": "fetch",
 		"actionTrigger": new RegExp("^.fetch\\b", "i"),
 		"actionFunction": function fetch(nick, chan, arguments) {
-			var arguments = arguments.split(" ");
+			var arguments = arguments.trim().split(" ");
 				api = ["active_skills","awakenings","evolutions","leader_skills","monsters"]
 				target = []
-				if (arguments == undefined) {
-					target = api;
-				} else {				
-					for (i = 0; i < arguments.length; i++) {
-						if (api.indexOf(arguments[i])) {
-							target.push(api[api.indexOf(arguments[i])]);
-						};
+					
+				for (i = 0; i < arguments.length; i++) {
+					if (api.indexOf(arguments[i]) > 0) {
+						target.push(api[api.indexOf(arguments[i])]);
 					};
 				};
 				
 				var xhr = []
 					url = []
-				
+					
 				if (target.length > 0) {
 					for (i = 0; i < target.length; i++) {
 						(function (i) {
