@@ -1,7 +1,7 @@
 var config = {
 	server: "irc.rizon.net",
 	nick: "Sakubot",
-	pass: "SEA#$hark",
+	pass: "",
 	options: {
 		userName: "Sakubot.2",
 		realName: "Sakubot.js",
