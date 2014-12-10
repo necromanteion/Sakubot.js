@@ -23,6 +23,13 @@ var load = function() {
 		if (scripts[i].indexOf(".js") < 0) { continue; };
 		script = require("./scripts/" + scripts[i])();
 		if (typeof script.trigger === undefined || typeof script.action === undefined) { continue; };
+		
+		if (script.exclude) {
+			script.exclude = new RegExp("\\b(?:" + script.exclude.join("|") + ")\\b", "i");
+		} else {
+			script.exclude = new RegExp("\\b(?!\\b(?:" + script.restrict.join("|") + ")\\b)\\w+\\b", "i"); 
+		};
+
 		actions.push(script);
 	};
 }();
@@ -43,7 +50,7 @@ Sakubot.hookEvent("Sakubot", "registered", function(message) {
 Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
 	console.log(message);
 	for (i = 0; i < actions.length; i++) {
-		if (actions[i].trigger.exec(message.message)) {
+		if (message.message.match(actions[i].trigger) && !message.nickname.match(actions[i].exclude)) {
 			var arguments = message.message.replace(actions[i].trigger, "").trim();
 				perform = actions[i].action(arguments, message.nickname, message.target);
 			client.irc.privmsg(message.target, perform);
