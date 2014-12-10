@@ -22,7 +22,7 @@ var load = function() {
 	for (i = 0; i < scripts.length; i++) {
 		if (scripts[i].indexOf(".js") < 0) { continue; };
 		script = require("./scripts/" + scripts[i])();
-		if (typeof script.trigger === undefined || typeof script.action === undefined) { continue; };		
+		if (typeof script.trigger === undefined || typeof script.action === undefined) { continue; };
 		actions.push(script);
 	};
 }();
@@ -41,7 +41,7 @@ Sakubot.hookEvent("Sakubot", "registered", function(message) {
 });
 
 Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
-	console.log(message);
+	//console.log(message);
 	for (i = 0; i < actions.length; i++) {
 		if (actions[i].trigger.exec(message.message)) {
 			var arguments = message.message.replace(actions[i].trigger, "").trim();
