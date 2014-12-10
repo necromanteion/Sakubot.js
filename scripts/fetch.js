@@ -32,7 +32,7 @@ module.exports = function() {
 						xhr[i].onreadystatechange = function() {
 							if (xhr[i].readyState == 4 && xhr[i].status == 200) {
 								response = JSON.parse(xhr[i].responseText);
-									data = [];
+									data = [{"empty":"empty"}] ;
 								for (j = 0; j < response.length; j++) {
 									if (response[j].id) {
 										data[response[j].id] = response[j];
@@ -41,7 +41,7 @@ module.exports = function() {
 										break;
 									};
 								};
-								fs.writeFile("./data/" + target[i] + ".js", JSON.stringify(data), function(err) {
+								fs.writeFile("./data/" + target[i] + ".json", JSON.stringify(data), function(err) {
 									if (err) throw err;
 									//console.log(target[i] + " saved to file!");
 								});
