@@ -35,7 +35,7 @@ var load = function() {
 }();
 
 Sakubot.hookEvent("Sakubot", "notice", function(message) {
-	
+	console.log(message.message)
 });
 
 Sakubot.hookEvent("Sakubot", "registered", function(message) {
@@ -51,9 +51,13 @@ Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
 	console.log(message);
 	for (i = 0; i < actions.length; i++) {
 		if (message.message.match(actions[i].trigger) && !message.nickname.match(actions[i].exclude)) {
+			if (message.target.charAt(0) == "#") { var target = message.target; }
+			else { var target = message.nickname; };
+			
 			var arguments = message.message.replace(actions[i].trigger, "").trim();
 				perform = actions[i].action(arguments, message.nickname, message.target);
-			client.irc.privmsg(message.target, perform);
+			//client.irc.privmsg(target, perform);
+			break;
 		};
 	};
 });
