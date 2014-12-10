@@ -4,15 +4,18 @@ module.exports = function() {
 	return {
 		"name": "fetch",
 		"trigger": new RegExp("^.fetch\\b", "i"),
+		"restrict": ["necromanteion"],
 		"action": function (arguments) {
-			var arguments = arguments.trim();
+			var	api = ["active_skills","awakenings","evolutions","leader_skills","monsters"];
+				target = [];
+				arguments = arguments.trim();
 			if (!arguments) {
 				return "Fetch what, onii-chan?";
+			} else if (arguments === "all") {
+				var arguments = api.slice(0);
 			} else {
 				var arguments = arguments.split(" ");
 			};
-			var	api = ["active_skills","awakenings","evolutions","leader_skills","monsters"];
-				target = [];
 			
 			for (i = 0; i < arguments.length; i++) {
 				if (api.indexOf(arguments[i]) >= 0) {
@@ -42,7 +45,7 @@ module.exports = function() {
 									};
 								};
 								fs.writeFile("./data/" + target[i] + ".json", JSON.stringify(data), function(err) {
-									if (err) throw err;
+									if (err) fs.mkdir("./data/", function() { });
 									//console.log(target[i] + " saved to file!");
 								});
 							};
@@ -51,9 +54,8 @@ module.exports = function() {
 					})(i);
 				};
 				fileResponse = target.slice(0);
-				fileResponse[0] = fileResponse[0].charAt(0).toUpperCase() + fileResponse[0].slice(1);
-				fileResponse[fileResponse.length - 1] = "and " + fileResponse[fileResponse.length - 1];
-				return fileResponse.join(", ") + " saved to file!";
+				if (fileResponse.length > 1) { fileResponse[fileResponse.length - 1] = "and " + fileResponse[fileResponse.length - 1]; };
+				return "Fetching " + fileResponse.join(", ") + " from padherder!";
 			} else {
 				return "Onii-chan check your spelling!";
 			};
