@@ -1,58 +1,52 @@
 var config = {
-	server: "irc.rizon.net",
 	nick: "Sakubot",
 	pass: "",
-	options: {
-		userName: "Sakubot.2",
-		realName: "Sakubot.js",
-		//port: 6667,
-		//debug: false,
-		//showErrors: false,
-		//autoRejoin: true,
-		//autoConnect: true,
-		channels: ["#sakubot"],
-		//secure: false,
-		//selfSigned: false,
-		//certExpired: false,
-		//floodProtection: false,
-		//floodProtectionDelay: 1000,
-		//sasl: false,
-		//stripColors: false,
-		//channelPrefixes: "&#",
-		messageSplit: 512
-	}
+	user: "Saku",
+	server: "irc.rizon.net",
+	realname: "Sakubot.js",
+	port: 6667,
+	secure: false
 };
+	channels = ["#sakubot"]
 
-var fs = require("fs");
-	irc = require("irc");
+var factory = require("irc-factory");
+	fs = require("fs");
 	XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
-var Sakubot = new bot();
-	//Sakubot.client = new irc.Client(config.server, config.nick, config.options);
 	
-function bot() {
-	var self = this;
-	self.actions = [];
+var Sakubot = new factory.Api();
+	client = Sakubot.createClient("Sakubot", config);
 	
-	//load scripts from Sakubot/scripts
+var load = function() {
 	var scripts = fs.readdirSync("./scripts");
 		actions = [];
 	for (i = 0; i < scripts.length; i++) {
 		if (scripts[i].indexOf(".js") < 0) { continue; };
-		script = require("./scripts/" + scripts[i])(self);
-		if (typeof script.actionTrigger === undefined || typeof script.actionFunction === undefined) { continue; };
-		
-		script.responseMethods = script.responseMethods || {"pm":"pm", "public":"public"};
-		
-		self.actions.push(script);
+		script = require("./scripts/" + scripts[i])();
+		if (typeof script.trigger === undefined || typeof script.action === undefined) { continue; };		
+		actions.push(script);
 	};
+}();
+
+Sakubot.hookEvent("Sakubot", "notice", function(message) {
 	
-	self.trigger = function(nick, chan, message) {		
-		for (i = 0; i < self.actions.length; i++) {
-			if (self.actions[i].actionTrigger.exec(message)) { 
-				arguments = message.replace(self.actions[i].actionTrigger, "").trim();
-				action = self.actions[i].actionFunction(nick, chan, arguments);
-			};
+});
+
+Sakubot.hookEvent("Sakubot", "registered", function(message) {
+    if (config.pass) {
+		client.irc.privmsg("nickserv", "identify " + config.pass);
+	};
+    for (i = 0; i < channels.length; i++) {
+		client.irc.join(channels[i]);
+	};
+});
+
+Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
+	console.log(message);
+	for (i = 0; i < actions.length; i++) {
+		if (actions[i].trigger.exec(message.message)) {
+			var arguments = message.message.replace(actions[i].trigger, "").trim();
+				perform = actions[i].action(arguments);
+			client.irc.privmsg(message.target, perform);
 		};
 	};
-};
+});
