@@ -15,7 +15,7 @@ var factory = require("irc-factory");
 	
 var Sakubot = new factory.Api();
 	client = Sakubot.createClient("Sakubot", config);
-	
+
 var load = function() {
 	var scripts = fs.readdirSync("./scripts");
 		actions = [];
@@ -41,11 +41,11 @@ Sakubot.hookEvent("Sakubot", "registered", function(message) {
 });
 
 Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
-	//console.log(message);
+	console.log(message);
 	for (i = 0; i < actions.length; i++) {
 		if (actions[i].trigger.exec(message.message)) {
 			var arguments = message.message.replace(actions[i].trigger, "").trim();
-				perform = actions[i].action(arguments);
+				perform = actions[i].action(arguments, message.nickname, message.target);
 			client.irc.privmsg(message.target, perform);
 		};
 	};
