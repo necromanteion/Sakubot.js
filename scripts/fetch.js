@@ -12,7 +12,7 @@ module.exports = function() {
 			if (!arguments) {
 				return "Fetch what, onii-chan?";
 			} else if (arguments === "all") {
-				var arguments = api.slice(0);
+				Array.prototype.push.apply(target, api);
 			} else {
 				var arguments = arguments.split(" ");
 			};
