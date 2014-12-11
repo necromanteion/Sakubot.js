@@ -62,9 +62,7 @@ Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
 		"action": function() {
 			var path = fs.realpathSync("./scripts/") + "\\";
 				scripts = fs.readdirSync("./scripts/");
-			for (i = 0; i < scripts.length; i++) {
-				delete require.cache[path + scripts[i]];
-			};
+			for (i = 0; i < scripts.length; i++) { delete require.cache[path + scripts[i]];	};
 			return load();
 		}
 	});
