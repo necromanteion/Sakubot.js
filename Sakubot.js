@@ -16,26 +16,8 @@ var factory = require("irc-factory");
 var Sakubot = new factory.Api();
 	client = Sakubot.createClient("Sakubot", config);
 
-var load = function() {
-	var scripts = fs.readdirSync("./scripts");
-		actions = [];
-	for (i = 0; i < scripts.length; i++) {
-		if (scripts[i].indexOf(".js") < 0) { continue; };
-		script = require("./scripts/" + scripts[i])();
-		if (typeof script.trigger === undefined || typeof script.action === undefined) { continue; };
-		
-		if (script.exclude) {
-			script.exclude = new RegExp("\\b(?:" + script.exclude.join("|") + ")\\b", "i");
-		} else {
-			script.exclude = new RegExp("\\b(?!\\b(?:" + script.restrict.join("|") + ")\\b)\\w+\\b", "i"); 
-		};
-
-		actions.push(script);
-	};
-}();
-
 Sakubot.hookEvent("Sakubot", "notice", function(message) {
-	console.log(message.message)
+	//console.log(message.message)
 });
 
 Sakubot.hookEvent("Sakubot", "registered", function(message) {
@@ -61,3 +43,35 @@ Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
 		};
 	};
 });
+
+(function load() {
+	var scripts = fs.readdirSync("./scripts/");
+		actions = [];
+		
+	for (i = 0; i < scripts.length; i++) {
+		if (scripts[i].indexOf(".js") < 0) { continue; };
+		script = require("./scripts/" + scripts[i])();
+		if (typeof script.trigger === undefined || typeof script.action === undefined) { continue; };
+		actions.push(script);
+	};
+	
+	actions.push({
+		"name": "(Re)Load",
+		"trigger": new RegExp("^.(re)?load\\b", "i"),
+		"restrict": ["necromanteion"],
+		"action": function() {
+			var path = fs.realpathSync("./scripts/") + "\\";
+				scripts = fs.readdirSync("./scripts/");
+			for (i = 0; i < scripts.length; i++) {
+				delete require.cache[path + scripts[i]];
+			};
+			return load();
+		}
+	});
+	
+	for (i = 0; i < actions.length; i++) {
+		if (actions[i].exclude) { actions[i].exclude = new RegExp("\\b(?:" + actions[i].exclude.join("|") + ")\\b", "i"); }
+		else { actions[i].exclude = new RegExp("\\b(?!\\b(?:" + actions[i].restrict.join("|") + ")\\b)\\w+\\b", "i"); }
+	};
+	return config.nick + " rebooted and ready to rock!";
+})();
