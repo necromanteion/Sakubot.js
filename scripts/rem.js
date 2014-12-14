@@ -17,37 +17,38 @@ module.exports = function() {
 					if (isFinite(arguments[i])) {
 						var n = parseInt(arguments[i]);
 						arguments.splice(i,1);
+						if (arguments[0] == undefined) { var arguments = current.slice(0) };
 						break;
 					};
 				};
-
-				arguments.forEach(function(entry) {
-					for (i = 0; i < pantheons.length; i++) {
-						if (entry.match(pantheons[i].regex)) {
-							append(rem, pantheons[i]);
-							title += pantheons[i].title + " ";
-							godfest += pantheons[i].godfestFlag;
-						};
+			} else { var arguments = current.slice(0); };
+			
+			var title = [];
+			arguments.forEach(function(entry) {
+				for (i = 0; i < pantheons.length; i++) {
+					if (entry.match(pantheons[i].regex)) {
+						append(rem, pantheons[i]);
+						title[title.length] = pantheons[i].title;
+						godfest += pantheons[i].godfestFlag;
 					};
-				});
-				
-				if (Boolean(godfest)) { append(rem, pantheons[17]); append(rem, pantheons[18]) };
-				
-			};
+				};
+			});
+			
+			if (Boolean(godfest)) { append(rem, pantheons[18]); append(rem, pantheons[19]) };
 			
 			if (n <= 0 || n == undefined) { var n = 1; }
 			else if (n > 5 && target.charAt(0) == "#") { return "Five rolls maximum please!"; }
 			else if (n > 10 && target.charAt(0) != "#") { return "Ten rolls maximum please!"; };
 			
-			if (target.charAt(0) == "#") { var target = nick + "\'s"; }
-			else { var target = "Your"; };
+			if (target.charAt(0) == "#") { var target = nick + "\'s "; }
+			else { var target = "Your "; };
 			
 			if (fs.existsSync("./data/monsters.json")) {
-				var data = fs.readFileSync("./data/monsters.json", {encoding: "utf8"})
+				var data = JSON.parse(fs.readFileSync("./data/monsters.json", {encoding: "utf8"}))
 					rolls = [];
 					plus = [" (+HP)", " (+ATK)", " (+RCV)"]
 				for (i = 0; i < n; i++) {
-					rolls.push(target + title + "REM roll: ^3" + JSON.parse(data)[rem[Math.floor(Math.random() * rem.length)]].name + "^20!" + (plus[Math.floor(Math.random() * 20)] || ""));
+					rolls.push(target + title.join(", ") + " REM roll: ^3" + data[rem[Math.floor(Math.random() * rem.length)]].name + "^20!" + (plus[Math.floor(Math.random() * 15)] || ""));
 				};
 				var rolls = rolls.join("\r\n").toString();
 
@@ -56,7 +57,7 @@ module.exports = function() {
 		}
 	};
 };
-
+var current = ["Greek","Egypt2","Indian","Forest"];
 var pantheons = [
 	{												
 	"title": "3*",
@@ -178,6 +179,13 @@ var pantheons = [
 	"godfestFlag": 1
 	},
 	{
+	"title": "Egyptian 2",
+	"regex": new RegExp("^(?:egypt(ian)?2(\.0)?)$","i"),
+	"members": [1659,1661,1663,1665,1667],
+	"multiplier": 3,
+	"godfestFlag": 1
+	},
+	{
 	"title": "Godfest 5*",
 	"regex": new RegExp("^(?:godfest5)$","i"),
 	"members": [362,640,911,1241,1359,1372,1585,1669,1671],
@@ -190,10 +198,10 @@ var pantheons = [
 	"members": [364,642,913,1088,1107,1243,1374,1587,1673],
 	"multiplier": 1,
 	"godfestFlag": 0
-	}/*,
+	},
 	{
 	"title": "Gala of Flame",
-	"regex": new RegExp("","i"),
+	"regex": new RegExp("^(?:flame|fire)$","i"),
 	"members": [79,89,99,112,289,352,1075,1120,1349,1412,1502, 				//4*
 				378,1076,1121,1350,113,201,229,290,316,353,555,1355,1614,	//5*
 				1356,379,556,												//6*
@@ -201,21 +209,24 @@ var pantheons = [
 	"multiplier": 2,
 	"godfestFlag": 0
 	},
-	{
+/*	{
 	"title": "Gala of Tides",
 	"regex": new RegExp("","i"),
 	"members": [],
 	"multiplier": 2,
 	"godfestFlag": 0
 	},
-	{
+*/	{
 	"title": "Forest Gala",
-	"regex": new RegExp("","i"),
-	"members": [],
+	"regex": new RegExp("^(?:forest|wood)$","i"),
+	"members": [83,93,103,116,295,356,1079,1124,1351,1416,					//4*
+				117,203,231,296,318,357,382,559,1080,1125,1130,1352,1618,	//5*
+				383,560,1131,1516,											//6*				
+				126,136,240,372,494,571,624,634,749,803,1069,1235,1334],	//Gods
 	"multiplier": 2,
 	"godfestFlag": 0
 	},
-	{
+/*	{
 	"title": "Heaven's Gala",
 	"regex": new RegExp("","i"),
 	"members": [],
