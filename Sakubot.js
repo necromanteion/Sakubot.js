@@ -27,7 +27,14 @@ Sakubot.hookEvent("Sakubot", "registered", function(message) {
     for (i = 0; i < channels.length; i++) {
 		client.irc.join(channels[i]);
 	};
+	
+	/*client.irc.raw(["whois", "Sakubot"])
+	Sakubot.hookEvent("Sakubot", "whois", function(message) {
+		console.log(message.channels);*/
+	});
 });
+
+
 
 Sakubot.hookEvent("Sakubot", "privmsg", function(message) {
 	for (i = 0; i < actions.length; i++) {
