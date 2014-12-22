@@ -1,11 +1,13 @@
 module.exports = function() {
-	//var fs = require("fs");
 	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 	return {
 		"name": "Events",
-		"trigger": new RegExp("^.events?\\b", "i"),
+		"trigger": new RegExp("^\\.events?\\b", "i"),
 		"exclude": ["Godzilla", "Bastet"],
-		"action": function(arguments) {
+		"actionType": "privmsg",
+		"action": function(message, nickname, target) {
+			target = (target.charAt(0) == "#" ? target : nickname);
+		
 			var xhr = new XMLHttpRequest();
 				url = "https://www.padherder.com/api/events/";
 				events = [];
@@ -16,33 +18,64 @@ module.exports = function() {
 				events = JSON.parse(xhr.responseText);
 			};
 				
-			if (arguments) {
-				var arguments = arguments.split(" ");
-				for (i = 0; i < arguments.length; i++) {
-					if (isFinite(arguments[i])) {
-						var n = parseInt(arguments[i]);
-						arguments.splice(i,1);
+			if (message) {
+				var message = message.toUpperCase().split(" ");
+				for (i = 0; i < message.length; i++) {
+					if (isFinite(message[i])) {
+						var n = parseInt(message[i]);
+						message.splice(i,1);
 						break;
-					} else if (arguments[i] === "all") {
+					} else if (message[i] === "ALL") {
 						var n = events.length
-						arguments.splice(i,1);
+						message.splice(i,1);
 						break;
 					};
 				};
-			} else { var arguments = ["A","B","C","D","E","1","2","3"];	};
+				
+				if (message.length > 0) {
+					var groups = message.join().replace(/(fire|red)/gi,1).replace(/(water|blue)/gi,2).replace(/(wood|green)/gi,3).split(",");
+				}
+				else { var groups = ["A","B","C","D","E","1","2","3"]; };
+			} else { var groups = ["A","B","C","D","E","1","2","3"]; };
 			
-			var groups = arguments.toUpperCase().slice(0);
-			console.log(groups);
-			
-			if (n <= 0 || n == undefined) { var n = 2; }
-			else if (n > 5 && target.charAt(0) == "#") { var n = 4; }
+			if (n == undefined || n <= 0) { var n = 2; }
+			else if (n > 4 && target.charAt(0) == "#") { var n = 4; }
 			//else if (n > 10 && target.charAt(0) != "#") { var n = 10; };
 
 			events = events.filter(function(value, index) {
-				return groups.indexOf(events[index].group_name) >= 0;
+				return groups.indexOf(events[index].group_name) >= 0 && events[index].country == 2;
 			});
-			console.log(events);
-			return "okay";
+			
+			var response = [];
+				title = "";
+				group = "";
+				time = "";
+				avail = "";
+			for (i = 0; i < n && i < events.length; i++) {
+				title = "^3" + events[i].title + "^20 ";
+				group = (isNaN(events[i].group_name) ? "^3Group " + events[i].group_name + "^20" : "^3" + ["Fire","Water","Wood"][events[i].group_name] + " starters^20");
+				time = new Date(events[i].starts_at) - new Date();
+				if (time < -3600000) {
+					n++;
+					continue;
+				} else if (time < 0) {
+					time = convertToTime(time + 3600000);
+					avail = "is currently available for " + group + " for another ";
+				} else {
+					time = convertToTime(time);
+					avail = "will be available for " + group + " in ";
+				};
+				
+				response[i] = title + avail + time + ".";
+			};
+			return [target,(response.length > 0 ? response.join("\n") : "I couldn't find any events" + (message.length > 0 ? " for that group" : "") + "!")];
 		}
 	};
+};
+
+function convertToTime(milliseconds) {
+	var hours = Math.floor(milliseconds / 3600000) ;
+		minutes = Math.floor((milliseconds % 3600000) / 60000);
+		seconds = Math.floor(((milliseconds % 3600000) % 60000) / 1000);
+	return (hours ? hours + "h" : "") + (minutes ? minutes + "m" : "") + (hours == 0 ? seconds + "s" : "");
 };
