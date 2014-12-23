@@ -55,31 +55,33 @@ module.exports = function() {
 					awokenSkills[i] = awakenings[data[id].awoken_skills[i]].name;
 				};
 				var awokenSkills = awokenSkills.join(", ") + ".";
-			} else {
-				var awokenSkills = "No awakenings!";
+			} else { var awokenSkills = "No awakenings!"; };
+			
+			if (evolutions[id]) {
+				
 			};
 
 			var	teamCost = data[id].team_cost;
 				rarity = data[id].rarity;
 				maxLevel = data[id].max_level;
-				hpMin = data[id].hp_min;
-				hpMax = data[id].hp_max;
-				atkMin = data[id].atk_min;
-				atkMax = data[id].atk_max;
-				rcvMin = data[id].rcv_min;
-				rcvMax = data[id].rcv_max;
 				xpCurve = data[id].xp_curve;
+				
+			var	response = name + " (#" + id + "): ";
 			
 			if (message.search(/\b(?:active)\b/i) > -1) {
-				response = name + " (#" + id + "): " + activeSkill + " " + activeSkillCD + "\n" + activeSkillDesc;
+				response += activeSkill + " " + activeSkillCD + "\n" + activeSkillDesc;
 			} else if (message.search(/\b(?:lead(er)?)\b/i) > -1) {
-				response = name + " (#" + id + "): " + leaderSkill + "\n" + leaderSkillDesc;
+				response += leaderSkill + "\n" + leaderSkillDesc;
 			} else if (message.search(/\b(?:ex(pand(ed)?)?)\b/i) > -1) {
-				response = name + " (#" + id + "): " + element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "") + "\nCost: " + teamCost + ", Rarity: " + Array(rarity + 1).join("★ ") + "\n@Lv. " + maxLevel + " HP: " + hpMax + ", ATK: " + atkMax + ", RCV: " + rcvMax + ", XP: " + Math.floor(Math.pow(((maxLevel - 1) / 98), 2.5) * xpCurve);
+				response += element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "") + "\nCost: " + teamCost + ", Rarity: " + Array(rarity + 1).join("★ ") + "\n@Lv. " + maxLevel + " HP: " + hpMax + ", ATK: " + atkMax + ", RCV: " + rcvMax + ", XP: " + Math.floor(Math.pow(((maxLevel - 1) / 98), 2.5) * xpCurve);
+			} else if (message.search(/\b(?:evo(lutions?)?)\b/i) > -1) {
+				//response += 
 			} else if (message.search(/\b(?:stats?)\b/i) > -1) {
-				response = name + " (#" + id + "): " + "@Lv. " + maxLevel + " HP: " + hpMax + ", ATK: " + atkMax + ", RCV: " + rcvMax + ", XP: " + Math.floor(Math.pow(((maxLevel - 1) / 98), 2.5) * xpCurve);
+				var level = (message.search(/\b(?:le?ve?l?):"?(\d+)"?\b/i) > -1 ? message.match(/\b(?:le?ve?l?):"?(\d+)"?\b/i)[1]: maxLevel);
+					level = (level > maxLevel ? maxLevel : level);
+				response += "@Lv. " + level + " HP: " + getStatValue(id, level, "HP") + ", ATK: " + getStatValue(id, level, "ATK") + ", RCV: " + getStatValue(id, level, "RCV") + ", XP: " + getXP(level, xpCurve);
 			} else {
-				response = name + " (#" + id + "): " + element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "");
+				response += element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "");
 			};
 			
 			return [target,response];
@@ -88,6 +90,18 @@ module.exports = function() {
 };
 var fs = require("fs");
 	data = JSON.parse(fs.readFileSync("./data/monsters.json", {encoding: "utf8"}));
+	evolutions = JSON.parse(fs.readFileSync("./data/evolutions.json", {encoding: "utf8"}));
 	awakenings = JSON.parse(fs.readFileSync("./data/awakenings.json", {encoding: "utf8"}));
 	activeSkills = JSON.parse(fs.readFileSync("./data/active_skills.json", {encoding: "utf8"}));
 	leaderSkills = JSON.parse(fs.readFileSync("./data/leader_skills.json", {encoding: "utf8"}));
+
+function getStatValue(id, level, stat) {
+	var	stat = ["hp", "atk", "rcv"][["hp", "atk", "rcv"].indexOf(stat.toLowerCase())];
+		maxLevel = data[id].max_level;
+		min = data[id][stat + "_min"];
+		max = data[id][stat + "_max"];
+		scale = data[id][stat + "_scale"];
+	return Math.floor(min + (max - min) * Math.pow((level - 1) / (maxLevel - 1), scale));
+};
+
+function getXP(level, xpCurve) { return Math.floor(Math.pow(((level - 1) / 98), 2.5) * xpCurve); };
