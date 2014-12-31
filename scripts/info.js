@@ -6,13 +6,13 @@ module.exports = function() {
 		"actionType": "privmsg",
 		"action": function (message, nickname, target) {
 			target = (target.charAt(0) == "#" ? target : nickname);
-		
+
 			if (message.search(/(?:id|mon(?:ster)?):(\d+|\w+|".+")/i) > -1) {
 				var	match = message.match(/(?:id|mon(?:ster)?):(\d+|\w+|".+")/i)[1].replace(/"/g,"");
 			} else {
-				return [target,"Who are you looking for, " + (nickname == "necromanteion" ? "" : nickname + "-") + "onii-chan?"];
+				return [target, "Who are you looking for, " + (nickname == "necromanteion" ? "" : nickname + "-") + "onii-chan?"];
 			};
-			
+
 			if (match.trim().length === 0) {
 				return [target,(nickname == "necromanteion" ? "O" : nickname + "-o") + "nii-chan, what are you doing?"];
 			} else if (isNaN(match)) {
@@ -23,7 +23,7 @@ module.exports = function() {
 					};
 				};
 				if (results.length === 0) {
-					return [target,"I couldn't find that monster!"];
+					return [target, "I couldn't find that monster!"];
 				} else if (results.length === 1) {
 					id = results[0].toString();
 				} else {
@@ -31,12 +31,12 @@ module.exports = function() {
 					for (i = 0; i < results.length && i < 15; i++) {
 						resultsArray[i] = data[results[i]].name + " (#" + results[i] + ")";
 					};
-					return [target,"I found " + resultsArray.length + " results for \"" + match + "\"! For more info look up:\n" + resultsArray.join(", ")];
+					return [target, "I found " + resultsArray.length + " results for \"" + match + "\"! For more info look up:\n" + resultsArray.join(", ")];
 				};
 			} else if (!data[match]) {
-				return [target,"I couldn't find that monster!"];
+				return [target, "I couldn't find that monster!"];
 			} else {var id = match.trim(); };
-			
+
 			var name = data[id].name;
 				element = ["Fire","Water","Wood","Light","Dark"][data[id].element];
 				element2 = ["Fire","Water","Wood","Light","Dark"][data[id].element2];
@@ -48,7 +48,7 @@ module.exports = function() {
 				activeSkillCD = (data[id].active_skill ? "(" + activeSkills[activeSkill].max_cooldown + " > " + activeSkills[activeSkill].min_cooldown + ")" : "");
 				leaderSkill = data[id].leader_skill || "No leader skill!";
 				leaderSkillDesc = (data[id].leader_skill ? leaderSkills[leaderSkill].effect : "");
-				
+
 			if (data[id].awoken_skills.length > 0) {
 				var awokenSkills = [];
 				for (i = 0; i < data[id].awoken_skills.length; i++) {
@@ -56,26 +56,30 @@ module.exports = function() {
 				};
 				var awokenSkills = awokenSkills.join(", ") + ".";
 			} else { var awokenSkills = "No awakenings!"; };
-			
+
 			if (evolutions[id]) {
-				
+
 			};
 
 			var	teamCost = data[id].team_cost;
 				rarity = data[id].rarity;
 				maxLevel = data[id].max_level;
 				xpCurve = data[id].xp_curve;
-				
-			var	response = name + " (#" + id + "): ";
-			
+
+			var	response = "^3" + name + "^20 (#" + id + "): ";
+
 			if (message.search(/\b(?:active)\b/i) > -1) {
 				response += activeSkill + " " + activeSkillCD + "\n" + activeSkillDesc;
 			} else if (message.search(/\b(?:lead(er)?)\b/i) > -1) {
 				response += leaderSkill + "\n" + leaderSkillDesc;
 			} else if (message.search(/\b(?:ex(pand(ed)?)?)\b/i) > -1) {
-				response += element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "") + "\nCost: " + teamCost + ", Rarity: " + Array(rarity + 1).join("★ ") + "\n@Lv. " + maxLevel + " HP: " + hpMax + ", ATK: " + atkMax + ", RCV: " + rcvMax + ", XP: " + Math.floor(Math.pow(((maxLevel - 1) / 98), 2.5) * xpCurve);
+				response += element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "");
+				response += "\nCost: " + teamCost + ", Rarity: " + Array(rarity + 1).join("★ ");
+				var level = (message.search(/\b(?:le?ve?l?):"?(\d+)"?\b/i) > -1 ? message.match(/\b(?:le?ve?l?):"?(\d+)"?\b/i)[1]: maxLevel);
+					level = (level > maxLevel ? maxLevel : level);
+				response += "\n@Lv. " + level + " HP: " + getStatValue(id, level, "HP") + ", ATK: " + getStatValue(id, level, "ATK") + ", RCV: " + getStatValue(id, level, "RCV") + ", XP: " + getXP(level, xpCurve);
 			} else if (message.search(/\b(?:evo(lutions?)?)\b/i) > -1) {
-				//response += 
+				//response +=
 			} else if (message.search(/\b(?:stats?)\b/i) > -1) {
 				var level = (message.search(/\b(?:le?ve?l?):"?(\d+)"?\b/i) > -1 ? message.match(/\b(?:le?ve?l?):"?(\d+)"?\b/i)[1]: maxLevel);
 					level = (level > maxLevel ? maxLevel : level);
@@ -83,17 +87,17 @@ module.exports = function() {
 			} else {
 				response += element + (element2 ? "/" + element2 : "") + ", " + type + (type2 ? "/" + type2 : "") + (jpOnly ? " (JP only!)" : "");
 			};
-			
-			return [target,response];
+
+			return [target, response];
 		}
 	};
 };
 var fs = require("fs");
-	data = JSON.parse(fs.readFileSync("./data/monsters.json", {encoding: "utf8"}));
-	evolutions = JSON.parse(fs.readFileSync("./data/evolutions.json", {encoding: "utf8"}));
-	awakenings = JSON.parse(fs.readFileSync("./data/awakenings.json", {encoding: "utf8"}));
-	activeSkills = JSON.parse(fs.readFileSync("./data/active_skills.json", {encoding: "utf8"}));
-	leaderSkills = JSON.parse(fs.readFileSync("./data/leader_skills.json", {encoding: "utf8"}));
+	data = (fs.existsSync("./data/monsters.json") ? JSON.parse(fs.readFileSync("./data/monsters.json", {encoding: "utf8"})) : {});
+	evolutions = (fs.existsSync("./data/evolutions.json") ? JSON.parse(fs.readFileSync("./data/evolutions.json", {encoding: "utf8"})) : {});
+	awakenings = (fs.existsSync("./data/awakenings.json") ? JSON.parse(fs.readFileSync("./data/awakenings.json", {encoding: "utf8"})) : {});
+	activeSkills = (fs.existsSync("./data/active_skills.json") ? JSON.parse(fs.readFileSync("./data/active_skills.json", {encoding: "utf8"})) : {});
+	leaderSkills = (fs.existsSync("./data/leader_skills.json") ? JSON.parse(fs.readFileSync("./data/leader_skills.json", {encoding: "utf8"})) : {});
 
 function getStatValue(id, level, stat) {
 	var	stat = ["hp", "atk", "rcv"][["hp", "atk", "rcv"].indexOf(stat.toLowerCase())];
