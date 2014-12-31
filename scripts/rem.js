@@ -6,12 +6,12 @@ module.exports = function() {
 		"actionType": "privmsg",
 		"action": function (message, nickname, target) {
 			target = (target.charAt(0) == "#" ? target : nickname);
-		
-			if (!data) { return [target,"I couldn't find the monster data!"]; }
+
+			if (!data) { return [target, "I couldn't find the monster data!"]; }
 			else {
 				var rem = buildREM(pantheons[0]);
 					godfest = 0;
-				
+
 				if (message.length > 0) {
 					var message = message.split(" ");
 					for (i = message.length - 1; i >= 0; i--) {
@@ -23,7 +23,7 @@ module.exports = function() {
 						};
 					};
 				} else { var message = current.slice(0); };
-				
+
 				var title = [];
 				for (i = 0; i < message.length; i++) {
 					for (j = 0; j < pantheons.length; j++) {
@@ -43,24 +43,24 @@ module.exports = function() {
 						} else { continue; };
 					};
 				};
-				
+
 				if (Boolean(godfest)) {
 					for (i = 0; i < pantheons.length; i++) {
 						if (pantheons[i].title == "Godfest") { buildREM(pantheons[i], rem); break; }
 						else { continue; };
 					};
 				};
-				
+
 				if (n <= 0 || n == undefined) { var n = 1; }
 				else if (n > 5 && target.charAt(0) == "#") { return [target,"Five rolls maximum please!"]; }
 				else if (n > 9 && target.charAt(0) != "#") { return [target,"Ten rolls maximum please!"]; };
-				
+
 				var	rolls = [];
-					
+
 				for (i = 0; i < n; i++) {
 					rolls.push((target.charAt(0) == "#" ? nickname + "\'s" : "Your") + (title.length > 0 ? " " + title.join(", ") : "") + " REM roll: ^3" + data[rem[Math.floor(Math.random() * rem.length)]].name + "^20!" + ([" (+HP)", " (+ATK)", " (+RCV)"][Math.floor(Math.random() * 15)] || ""));
 				};
-				
+
 				return [target,rolls.join("\r\n").toString()];
 			};
 		}
@@ -72,9 +72,9 @@ if (fs.existsSync("./data/monsters.json")) {
 	var data = JSON.parse(fs.readFileSync("./data/monsters.json", {encoding: "utf8"}));
 };
 
-var current = ["Water"];
+var current = ["Hearts"];
 var pantheons = [
-	{												
+	{
 	"title": "REM",
 	"regex": null,
 	"members": {
@@ -234,7 +234,7 @@ var pantheons = [
 	},
 	{
 	"title": "Gala of Tides",
-	"regex": new RegExp("","i"),
+	"regex": new RegExp("^(?:tides?|water)","i"),
 	"members": {
 		"4": [81,91,101,114,292,354,1077,1122,1414,1514],
 		"5": [115,202,230,293,317,355,380,557,1078,124,134,238,370,492,569,622,632,747,801,1067,1123,1233,1332,1616,1661],
@@ -321,7 +321,17 @@ var pantheons = [
 		"4": [352,360,1120,1502,1506],
 		"5": [1704,1706,124,569,620,622,624,626,628,638,807,353,361,378,382,559,561,563,1121,1503,1507,1620,1622,1624,1626],
 		},
-	"replacement": true,
+	"replacement": false,
+	},
+	{
+	"title": "Hearts & Diamonds",
+	"regex": new RegExp("^(?:hearts?|diamonds?)$","i"),
+	"members": {
+		"4": [488,486],
+		"5": [563,559,555,1618,1616,1614,384,382,1706],
+		"6": [1516,1270,972,982],
+		},
+	"replacement": false,
 	},
 	{
 	"title": "Hello Kitty",
@@ -353,7 +363,7 @@ function buildREM(object, appendTo) {
 		array  = [];
 		rarity = ["7","6","5","4","3","2","1"]			// corresponds to [1,3,5,7,9,11,13] /  multiplier
 		multiplier = (Boolean(object.multiplier) ? object.multiplier : 2);		//multiplier of 2 means it will add 1 instance to the rem, doubling it if it's already in the rem
-	
+
 	for (x = 0; x < Object.keys(object.members).length; x++) {
 		for (xx = 1; xx < multiplier; xx++) {
 			for (xxx = 0; xxx < 2 * rarity.indexOf(Object.keys(object.members)[x]) + 1; xxx++) {
@@ -361,7 +371,7 @@ function buildREM(object, appendTo) {
 			};
 		};
 	};
-	
+
 	Array.prototype.push.apply(appendTo, array)
 	return appendTo;
 };
